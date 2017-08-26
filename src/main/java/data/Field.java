@@ -15,6 +15,8 @@ public class Field {
 	
 	private JSONArray fields;
 	private HashMap<String,String> fieldLabelVsColumnMap;
+	private HashMap<String,String> columnVsFieldLabelMap;
+	private HashMap<String,Object> columnVsDefaultValueMap;
 	public static int TRUE = 1;
 	public static int FALSE = 0;
 	public static Select getSelectQueryForField()
@@ -25,6 +27,8 @@ public class Field {
 		sq.addSelectColumn(query.new Column(FIELD.TABLE,FIELD.TABLE_NAME));
 		sq.addSelectColumn(query.new Column(FIELD.TABLE,FIELD.COLUMN_NAME));
 		sq.addSelectColumn(query.new Column(FIELD.TABLE,FIELD.FIELD_LABEL));
+		sq.addSelectColumn(query.new Column(FIELD.TABLE,FIELD.DATA_TYPE));
+		sq.addSelectColumn(query.new Column(FIELD.TABLE,FIELD.DEFAULT_VALUE));
 		return sq;
 	}
 	
@@ -67,26 +71,77 @@ public class Field {
 			je.printStackTrace();
 		}
 	}
+	public HashMap<String,Object> getColumnVsDefaultValueMap()
+	{
+		if(this.columnVsDefaultValueMap!=null)
+		{
+			return this.columnVsDefaultValueMap;
+		}
+		this.columnVsDefaultValueMap = new HashMap<String,Object>();
+		try
+		{
+			for(int i=0; i<this.fields.length(); i++)
+			{
+				JSONObject field = fields.getJSONObject(i);
+				String columnName = field.getString(FIELD.COLUMN_NAME);
+				String dataType = field.getString(FIELD.DATA_TYPE);
+				if(field.has(FIELD.DEFAULT_VALUE))
+				{
+					String defaultValue = field.getString(FIELD.DEFAULT_VALUE);
+					if(defaultValue!=null)
+					{
+						this.columnVsDefaultValueMap.put(columnName, DataType.getValue(dataType, defaultValue));
+					}
+				}
+			}	
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return this.columnVsDefaultValueMap;
+		
+	}
+	private void populateFieldLabelColumnMap()
+	{
+		if(this.fieldLabelVsColumnMap==null)
+		{
+			fieldLabelVsColumnMap = new HashMap<String,String>();
+		}
+		if(this.columnVsFieldLabelMap==null)
+		{
+			columnVsFieldLabelMap = new HashMap<String,String>();
+		}
+		try
+		{
+			for(int i=0; i<this.fields.length(); i++)
+			{
+				JSONObject field = fields.getJSONObject(i);
+				String fieldLabel = field.getString(FIELD.FIELD_LABEL);
+				String columnName = field.getString(FIELD.COLUMN_NAME);
+				this.fieldLabelVsColumnMap.put(fieldLabel, columnName);
+				this.columnVsFieldLabelMap.put(columnName, fieldLabel);
+			}
+		}
+		catch(JSONException je)
+		{
+			System.out.println(je.getMessage()+"\n");
+			je.printStackTrace();
+		}
+	}
+	public HashMap<String,String> getColumnVsFieldLabelMap()
+	{
+		if(this.columnVsFieldLabelMap==null)
+		{
+			populateFieldLabelColumnMap();
+		}
+		return this.columnVsFieldLabelMap;
+	}
 	public HashMap<String,String> getFieldLabelVsColumnMap()
 	{
 		if(this.fieldLabelVsColumnMap==null)
 		{
-			this.fieldLabelVsColumnMap = new HashMap<String,String>();
-			try
-			{
-				for(int i=0; i<this.fields.length(); i++)
-				{
-					JSONObject field = fields.getJSONObject(i);
-					String fieldLabel = field.getString(FIELD.FIELD_LABEL);
-					String columnName = field.getString(FIELD.COLUMN_NAME);
-					this.fieldLabelVsColumnMap.put(fieldLabel, columnName);
-				}
-			}
-			catch(JSONException je)
-			{
-				System.out.println(je.getMessage()+"\n");
-				je.printStackTrace();
-			}
+			populateFieldLabelColumnMap();
 		}
 		return this.fieldLabelVsColumnMap;
 	}

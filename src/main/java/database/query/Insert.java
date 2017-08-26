@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import data.Field;
+
 public class Insert {
 	
 	private String insertTableName;
@@ -53,6 +55,19 @@ public class Insert {
 				{
 					queryString.append(row.get(colName));
 				}
+				else
+				{
+					Field field = new Field(this.insertTableName);
+					HashMap<String,Object> defaultValueMap = field.getColumnVsDefaultValueMap();
+					if(defaultValueMap.containsKey(colName))
+					{
+						queryString.append(defaultValueMap.get(colName));
+					}
+					else
+					{
+						queryString.append("NULL");
+					}
+				}
 				if(subcnt!=sublen)
 				{
 					queryString.append(",");
@@ -89,15 +104,12 @@ public class Insert {
 			{
 				this.insertTableName = tableName;
 			}
-			else if(tableName.equals(this.insertTableName))
+			String columnName = column.getColumnName();
+			if(!colNames.contains(columnName))
 			{
-				String columnName = column.getColumnName();
-				if(!colNames.contains(columnName))
-				{
-					colNames.add(columnName);
-				}
-				insertRow.put(columnName, value);
+				colNames.add(columnName);
 			}
+			insertRow.put(columnName, value);
 		}
 		this.rows.add(insertRow);
 	}

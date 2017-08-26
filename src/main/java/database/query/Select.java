@@ -35,12 +35,11 @@ public class Select {
 		String selectStatement = "SELECT";
 		int arrLen = selectColumns.size();
 		int cnt = 1;
-		String tempBaseTable = null;
 		for(Query.Column selectColumn : selectColumns)
 		{
 			if(cnt==1)
 			{
-				tempBaseTable = selectColumn.getTableName();
+				this.baseTableName = selectColumn.getTableName();
 			}
 			selectStatement+=" "+(selectColumn.getColumnString());
 			if(cnt!=arrLen)
@@ -48,10 +47,6 @@ public class Select {
 				selectStatement+=",";
 			}
 			cnt++;
-		}
-		if(joins==null || joins.isEmpty())
-		{
-			this.baseTableName = tempBaseTable;
 		}
 		selectStatement+=" FROM "+this.baseTableName;
 		for(Query.Join join : this.joins)

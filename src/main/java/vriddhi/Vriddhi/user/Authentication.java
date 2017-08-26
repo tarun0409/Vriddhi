@@ -28,7 +28,8 @@ public class Authentication {
 			DBUser dbUser = new DBUser();
 			dbUser.setUserName(authObj.getString("user_name"));
 			dbUser.setPassword(authObj.getString("password"));
-			Connection connection = Connect.getConnection(dbUser);
+			Connect connect = Connect.getInstance();
+			Connection connection = connect.getConnection(dbUser);
 			if(connection!=null)
 			{
 				response.put("status", "SUCCESS");

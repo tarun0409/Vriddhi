@@ -6,28 +6,38 @@ import java.sql.SQLException;
 
 public class Connect {
 	
-	private static Connection prabandh;
-	public static Connection getConnection(DBUser user)
+	private Connection connection;
+	private static Connect connect;
+	
+	public static Connect getInstance()
 	{
-		if(prabandh==null)
+		if(connect==null)
+		{
+			connect = new Connect();
+		}
+		return connect;
+	}
+	public Connection getConnection(DBUser user)
+	{
+		if(connection==null)
 		{
 			try
 			{
 				Class.forName("com.mysql.jdbc.Driver");
 				Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/prabandh",user.getUserName(),user.getPassword());
 				System.out.println("Database connection established successfully");
-				prabandh = con;
+				connection = con;
 			}
 			catch(SQLException s)
 			{
 				System.out.println("Unable to establish SQL connection");
-				prabandh = null;
+				connection = null;
 			} catch (ClassNotFoundException e) 
 			{
 				e.printStackTrace();
 			}
 		}
-		return prabandh;
+		return connection;
 	}
 
 }

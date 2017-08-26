@@ -26,7 +26,8 @@ public class Interface {
 		columnTypes = new JSONObject();
 		if(connection==null)
 		{
-			connection = Connect.getConnection(null);
+			Connect connect = Connect.getInstance();
+			connection = connect.getConnection(null);
 		}
 		this.dataType = "json";
 	}

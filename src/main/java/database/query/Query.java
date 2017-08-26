@@ -33,7 +33,14 @@ public class Query {
 		{
 			this.tableName = tableName;
 			this.columnName = columnName;
-			columnString = tableName+"."+columnName;
+			if(columnName.equals("*"))
+			{
+				columnString = "*";
+			}
+			else
+			{
+				columnString = tableName+"."+columnName;
+			}
 		}
 		public void setAggregateFunction(String function)
 		{
