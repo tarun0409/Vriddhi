@@ -31,6 +31,8 @@ import database.query.Update;
 import database.schema.SAREE;
 import database.schema.Key;
 
+
+@Path("sarees")
 public class Saree {
 	
 
