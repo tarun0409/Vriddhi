@@ -7,7 +7,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -27,56 +26,59 @@ import database.query.Delete;
 import database.query.Insert;
 import database.query.Query;
 import database.query.Select;
-import database.query.Update;
-import database.schema.ACCOUNT;
+import database.schema.TRANSACTION;
 import database.schema.Key;
 
-@Path("accounts")
-public class Account {
+@Path("transactions")
+public class Transaction {
 	
-	public static String rootElementName = "accounts";
+
+	
+
+	
+	public static String rootElementName = "transactions";
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getAllAccounts()
+	public String getAllTransactions()
 	{
 		try
 		{
 			Query query = new Query();
 			Select sq = new Select();
-			sq.addSelectColumn(query.new Column(ACCOUNT.TABLE,"*"));
+			sq.addSelectColumn(query.new Column(TRANSACTION.TABLE,"*"));
 			Interface dbInt = new Interface();
 			JSONObject rs = (JSONObject)dbInt.getData(sq);
 			if(rs!=null)
 			{
-				Field field = new Field(ACCOUNT.TABLE);
+				Field field = new Field(TRANSACTION.TABLE);
 				HashMap<String,String> columnVsFieldLabelMap = field.getColumnVsFieldLabelMap();
-				JSONArray accounts = rs.getJSONArray("account");
-				JSONArray resAccounts = new JSONArray();
-				for(int i=0; i<accounts.length(); i++)
+				JSONArray transactions = rs.getJSONArray("transaction");
+				JSONArray resTransactions = new JSONArray();
+				for(int i=0; i<transactions.length(); i++)
 				{
-					JSONObject accountRes = new JSONObject();
-					JSONObject account = accounts.getJSONObject(i);
-					Iterator<?> accountKeys = account.keys();
-					while(accountKeys.hasNext())
+					JSONObject transactionRes = new JSONObject();
+					JSONObject transaction = transactions.getJSONObject(i);
+					Iterator<?> transactionKeys = transaction.keys();
+					while(transactionKeys.hasNext())
 					{
-						String accountKey = (String)accountKeys.next();
+						String transactionKey = (String)transactionKeys.next();
 						String key = null;
-						if(accountKey.equals(Key.getPrimaryKey(ACCOUNT.TABLE)))
+						if(transactionKey.equals(Key.getPrimaryKey(TRANSACTION.TABLE)))
 						{
 							key = "ID";
 						}
 						else
 						{
-							key = columnVsFieldLabelMap.get(accountKey);
+							key = columnVsFieldLabelMap.get(transactionKey);
 						}
-						Object value = account.get(accountKey);
-						accountRes.put(key, value);
+						Object value = transaction.get(transactionKey);
+						transactionRes.put(key, value);
 					}
-					resAccounts.put(accountRes);
+					resTransactions.put(transactionRes);
 				}
 				JSONObject response = new JSONObject();
-				response.put(rootElementName, resAccounts);
+				response.put(rootElementName, resTransactions);
 				return response.toString();
 			}
 		}
@@ -91,30 +93,30 @@ public class Account {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String postAccounts(String accounts)
+	public String postTransactions(String transactions)
 	{
 		Response response = new Response();
 		int dataLength = 0;
 		try
 		{
-			JSONObject accountsObj = new JSONObject(accounts);
-			JSONArray postAccounts = accountsObj.getJSONArray(rootElementName);
-			Field field = new Field(ACCOUNT.TABLE);
+			JSONObject transactionsObj = new JSONObject(transactions);
+			JSONArray postTransactions = transactionsObj.getJSONArray(rootElementName);
+			Field field = new Field(TRANSACTION.TABLE);
 			Query query = new Query();
 			HashMap<String,String> fieldLabelVsColumnName = field.getFieldLabelVsColumnMap();
 			Insert insertObj = new Insert();
-			dataLength = postAccounts.length();
+			dataLength = postTransactions.length();
 			for(int i=0; i<dataLength; i++)
 			{
-				JSONObject postAccount = postAccounts.getJSONObject(i);
-				Iterator<?> fieldLabelKeys = postAccount.keys();
+				JSONObject postTransaction = postTransactions.getJSONObject(i);
+				Iterator<?> fieldLabelKeys = postTransaction.keys();
 				HashMap<Query.Column,Object> insertMapEntry = new HashMap<Query.Column,Object>();
 				while(fieldLabelKeys.hasNext())
 				{
 					String fieldLabel = (String)fieldLabelKeys.next();
 					String columnName = fieldLabelVsColumnName.get(fieldLabel);
-					Object value = postAccount.get(fieldLabel);
-					Query.Column column = query.new Column(ACCOUNT.TABLE,columnName);
+					Object value = postTransaction.get(fieldLabel);
+					Query.Column column = query.new Column(TRANSACTION.TABLE,columnName);
 					insertMapEntry.put(column, value);
 				}
 				insertObj.addInsertEntry(insertMapEntry);
@@ -141,69 +143,17 @@ public class Account {
 		}
 		return response.getResponse();
 	}
-
-		
-	@PUT
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{accountId}")
-	public String updateAccount(@PathParam("accountId") Integer accountId, String accountUpdates)
-	{
-		Response response = new Response();
-		try
-		{
-			JSONObject accountsObj = new JSONObject(accountUpdates);
-			JSONArray accountsArray = accountsObj.getJSONArray(rootElementName);
-			JSONObject account = accountsArray.getJSONObject(0);
-			Update updateObj = new Update();
-			updateObj.setUpdateTableName(ACCOUNT.TABLE);
-			Iterator<?> accountKeys = account.keys();
-			Field field = new Field(ACCOUNT.TABLE);
-			HashMap<String,String> fieldLabelVsColumnName = field.getFieldLabelVsColumnMap();
-			Query query = new Query();
-			while(accountKeys.hasNext())
-			{
-				String fieldLabel = (String)accountKeys.next();
-				String columnName = fieldLabelVsColumnName.get(fieldLabel);
-				Object value = account.get(fieldLabel);
-				updateObj.setValueForColumn(query.new Column(ACCOUNT.TABLE,columnName), value);
-			}
-			Query.Criteria uCr = query.new Criteria(query.new Column(ACCOUNT.TABLE,ACCOUNT.ACCOUNT_ID), accountId, Query.comparison_operators.EQUAL_TO);
-			updateObj.setCriteria(uCr);
-			Interface dbInt = new Interface();
-			int rs = dbInt.updateData(updateObj);
-			if(rs>0)
-			{
-				response.setStatus(Response.SUCCESS);
-				response.setMessage(rs+" record updated successfully");
-			}
-			else
-			{
-				response.setStatus(Response.FAILURE);
-				response.setMessage("Something went wrong while updating records");
-			}
-		}
-		catch(Exception e)
-		{
-			response.setStatus(Response.FAILURE);
-			response.setMessage(e.getMessage());
-			e.printStackTrace();
-		}
-		return response.getResponse();
-	}
-
-	
 	
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{accountId}")
-	public String deleteAccount(@PathParam("accountId") Integer accountId)
+	@Path("{transactionId}")
+	public String deleteTransaction(@PathParam("transactionId") Integer transactionId)
 	{
 		Response response = new Response();
 		Delete deleteObj = new Delete();
-		deleteObj.setDeleteTableName(ACCOUNT.TABLE);
+		deleteObj.setDeleteTableName(TRANSACTION.TABLE);
 		Query query = new Query();
-		Query.Criteria dCr = query.new Criteria(query.new Column(ACCOUNT.TABLE,ACCOUNT.ACCOUNT_ID), accountId, Query.comparison_operators.EQUAL_TO);
+		Query.Criteria dCr = query.new Criteria(query.new Column(TRANSACTION.TABLE,TRANSACTION.TRANSACTION_ID), transactionId, Query.comparison_operators.EQUAL_TO);
 		deleteObj.setDeleteCriteria(dCr);
 		Interface dbInt = new Interface();
 		int rs = dbInt.deleteData(deleteObj);
@@ -223,21 +173,21 @@ public class Account {
 	
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
-	public String deleteAccounts(@Context UriInfo uriInfo)
+	public String deleteTransactions(@Context UriInfo uriInfo)
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String accountIdsString = queryParams.getFirst("accountIds");
-		String[] accountIdStrings = accountIdsString.split(",");
-		int dataLen = accountIdStrings.length;
+		String transactionIdsString = queryParams.getFirst("transactionIds");
+		String[] transactionIdStrings = transactionIdsString.split(",");
+		int dataLen = transactionIdStrings.length;
 		int deletedLen = 0;
 		Query query = new Query();
 		for(int i=0; i<dataLen; i++)
 		{
-			Integer accountId = Integer.parseInt(accountIdStrings[i]);
+			Integer transactionId = Integer.parseInt(transactionIdStrings[i]);
 			Delete deleteObj = new Delete();
-			deleteObj.setDeleteTableName(ACCOUNT.TABLE);
-			Query.Criteria dCr = query.new Criteria(query.new Column(ACCOUNT.TABLE,ACCOUNT.ACCOUNT_ID), accountId, Query.comparison_operators.EQUAL_TO);
+			deleteObj.setDeleteTableName(TRANSACTION.TABLE);
+			Query.Criteria dCr = query.new Criteria(query.new Column(TRANSACTION.TABLE,TRANSACTION.TRANSACTION_ID), transactionId, Query.comparison_operators.EQUAL_TO);
 			deleteObj.setDeleteCriteria(dCr);
 			Interface dbInt = new Interface();
 			int rs = dbInt.deleteData(deleteObj);
@@ -259,4 +209,8 @@ public class Account {
 		return response.getResponse();
 	}
 	
+
+
+
+
 }
