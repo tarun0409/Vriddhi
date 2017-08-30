@@ -78,5 +78,47 @@ public class Function {
 		}
 		return profit.toString();
 	}
+	
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("quantity_available")
+	public String getItemsAvailable()
+	{
+		Response response = new Response();
+		Query query = new Query();
+		Select sq = new Select();
+		sq.addSelectColumn(query.new Column(ITEM.TABLE,ITEM.ITEM_ID));
+		sq.addSelectColumn(query.new Column(ITEM.TABLE,ITEM.QUANTITY_AVAILABLE));
+		Interface dbInt = new Interface();
+		JSONObject rs = (JSONObject)dbInt.getData(sq);
+		if(rs!=null)
+		{
+			try
+			{
+				JSONArray items = rs.getJSONArray(ITEM.TABLE);
+				JSONObject availableQ = new JSONObject();
+				for(int i=0; i<items.length(); i++)
+				{
+					JSONObject itemRow = items.getJSONObject(i);
+					Integer quant = itemRow.getInt(ITEM.QUANTITY_AVAILABLE);
+					Integer itemId = itemRow.getInt(ITEM.ITEM_ID);
+					availableQ.put(itemId.toString(), quant);
+				}
+				JSONObject respObj = new JSONObject();
+				respObj.put("quantity_available", availableQ);
+				return respObj.toString();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				response.setStatus(Response.FAILURE);
+				response.setMessage(e.getMessage());
+			}
+		}
+		return response.getResponse();
+		
+		
+	}
 
 }

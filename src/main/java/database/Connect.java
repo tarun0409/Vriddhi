@@ -32,9 +32,11 @@ public class Connect {
 			{
 				System.out.println("Unable to establish SQL connection");
 				connection = null;
-			} catch (ClassNotFoundException e) 
+			} 
+			catch (Exception e) 
 			{
 				e.printStackTrace();
+				return null;
 			}
 		}
 		return connection;
