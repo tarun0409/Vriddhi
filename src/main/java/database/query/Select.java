@@ -12,6 +12,7 @@ public class Select {
 	private ArrayList<Query.Column> orderByColumns;
 	private String sortOrder;
 	private String baseTableName;
+	private Integer limit;
 	
 	public static enum order
 	{
@@ -89,6 +90,10 @@ public class Select {
 			}
 			orderByString+=" "+this.sortOrder;
 			selectStatement+=" "+orderByString;
+		}
+		if(limit!=null && limit!=0)
+		{
+			selectStatement+=" limit "+limit.toString();
 		}
 		selectStatement+=";";
 		return selectStatement;
@@ -172,6 +177,9 @@ public class Select {
 	public void setSortingOrder(Select.order sOrder)
 	{
 		this.sortOrder = ""+sOrder;
+	}
+	public void setLimit(int limit) {
+		this.limit = limit;
 	}
 
 }

@@ -1,5 +1,6 @@
 package vriddhi.Vriddhi.records;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -28,60 +29,79 @@ import database.query.Insert;
 import database.query.Query;
 import database.query.Select;
 import database.query.Update;
-import database.schema.SAREE;
+import database.schema.ITEM;
 import database.schema.Key;
 
 
-@Path("sarees")
-public class Saree {
+@Path("items")
+public class Item {
 	
 
 	
 
 	
-	public static String rootElementName = "sarees";
+	public static String rootElementName = "items";
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getAllSarees()
+	public String getAllItems(@Context UriInfo uriInfo)
 	{
 		try
 		{
+			ArrayList<Integer> itemIds = new ArrayList<Integer>();
+			if(uriInfo!=null)
+			{
+				MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
+				String idsString = queryParams.getFirst("ids");
+				if(idsString!=null && !idsString.isEmpty())
+				{
+					String[] ids = idsString.split(",");
+					for(int i=0; i<ids.length; i++)
+					{
+						itemIds.add(Integer.parseInt(ids[i]));
+					}
+				}
+			}
 			Query query = new Query();
 			Select sq = new Select();
-			sq.addSelectColumn(query.new Column(SAREE.TABLE,"*"));
+			sq.addSelectColumn(query.new Column(ITEM.TABLE,"*"));
+			if(itemIds.size()>0)
+			{
+				Query.Criteria idCr = query.new Criteria(query.new Column(ITEM.TABLE,ITEM.ITEM_ID),itemIds,Query.comparison_operators.IN);
+				sq.setCriteria(idCr);
+			}
 			Interface dbInt = new Interface();
 			JSONObject rs = (JSONObject)dbInt.getData(sq);
 			if(rs!=null)
 			{
-				Field field = new Field(SAREE.TABLE);
+				Field field = new Field(ITEM.TABLE);
 				HashMap<String,String> columnVsFieldLabelMap = field.getColumnVsFieldLabelMap();
-				JSONArray sarees = rs.getJSONArray("saree");
-				JSONArray resSarees = new JSONArray();
-				for(int i=0; i<sarees.length(); i++)
+				JSONArray items = rs.getJSONArray("item");
+				JSONArray resItems = new JSONArray();
+				for(int i=0; i<items.length(); i++)
 				{
-					JSONObject sareeRes = new JSONObject();
-					JSONObject saree = sarees.getJSONObject(i);
-					Iterator<?> sareeKeys = saree.keys();
-					while(sareeKeys.hasNext())
+					JSONObject itemRes = new JSONObject();
+					JSONObject item = items.getJSONObject(i);
+					Iterator<?> itemKeys = item.keys();
+					while(itemKeys.hasNext())
 					{
-						String sareeKey = (String)sareeKeys.next();
+						String itemKey = (String)itemKeys.next();
 						String key = null;
-						if(sareeKey.equals(Key.getPrimaryKey(SAREE.TABLE)))
+						if(itemKey.equals(Key.getPrimaryKey(ITEM.TABLE)))
 						{
 							key = "ID";
 						}
 						else
 						{
-							key = columnVsFieldLabelMap.get(sareeKey);
+							key = columnVsFieldLabelMap.get(itemKey);
 						}
-						Object value = saree.get(sareeKey);
-						sareeRes.put(key, value);
+						Object value = item.get(itemKey);
+						itemRes.put(key, value);
 					}
-					resSarees.put(sareeRes);
+					resItems.put(itemRes);
 				}
 				JSONObject response = new JSONObject();
-				response.put(rootElementName, resSarees);
+				response.put(rootElementName, resItems);
 				return response.toString();
 			}
 		}
@@ -96,30 +116,30 @@ public class Saree {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String postSarees(String sarees)
+	public String postItems(String items)
 	{
 		Response response = new Response();
 		int dataLength = 0;
 		try
 		{
-			JSONObject sareesObj = new JSONObject(sarees);
-			JSONArray postSarees = sareesObj.getJSONArray(rootElementName);
-			Field field = new Field(SAREE.TABLE);
+			JSONObject itemsObj = new JSONObject(items);
+			JSONArray postItems = itemsObj.getJSONArray(rootElementName);
+			Field field = new Field(ITEM.TABLE);
 			Query query = new Query();
 			HashMap<String,String> fieldLabelVsColumnName = field.getFieldLabelVsColumnMap();
 			Insert insertObj = new Insert();
-			dataLength = postSarees.length();
+			dataLength = postItems.length();
 			for(int i=0; i<dataLength; i++)
 			{
-				JSONObject postSaree = postSarees.getJSONObject(i);
-				Iterator<?> fieldLabelKeys = postSaree.keys();
+				JSONObject postItem = postItems.getJSONObject(i);
+				Iterator<?> fieldLabelKeys = postItem.keys();
 				HashMap<Query.Column,Object> insertMapEntry = new HashMap<Query.Column,Object>();
 				while(fieldLabelKeys.hasNext())
 				{
 					String fieldLabel = (String)fieldLabelKeys.next();
 					String columnName = fieldLabelVsColumnName.get(fieldLabel);
-					Object value = postSaree.get(fieldLabel);
-					Query.Column column = query.new Column(SAREE.TABLE,columnName);
+					Object value = postItem.get(fieldLabel);
+					Query.Column column = query.new Column(ITEM.TABLE,columnName);
 					insertMapEntry.put(column, value);
 				}
 				insertObj.addInsertEntry(insertMapEntry);
@@ -151,29 +171,29 @@ public class Saree {
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{sareeId}")
-	public String updateSaree(@PathParam("sareeId") Integer sareeId, String sareeUpdates)
+	@Path("{itemId}")
+	public String updateItem(@PathParam("itemId") Integer itemId, String itemUpdates)
 	{
 		Response response = new Response();
 		try
 		{
-			JSONObject sareesObj = new JSONObject(sareeUpdates);
-			JSONArray sareesArray = sareesObj.getJSONArray(rootElementName);
-			JSONObject saree = sareesArray.getJSONObject(0);
+			JSONObject itemsObj = new JSONObject(itemUpdates);
+			JSONArray itemsArray = itemsObj.getJSONArray(rootElementName);
+			JSONObject item = itemsArray.getJSONObject(0);
 			Update updateObj = new Update();
-			updateObj.setUpdateTableName(SAREE.TABLE);
-			Iterator<?> sareeKeys = saree.keys();
-			Field field = new Field(SAREE.TABLE);
+			updateObj.setUpdateTableName(ITEM.TABLE);
+			Iterator<?> itemKeys = item.keys();
+			Field field = new Field(ITEM.TABLE);
 			HashMap<String,String> fieldLabelVsColumnName = field.getFieldLabelVsColumnMap();
 			Query query = new Query();
-			while(sareeKeys.hasNext())
+			while(itemKeys.hasNext())
 			{
-				String fieldLabel = (String)sareeKeys.next();
+				String fieldLabel = (String)itemKeys.next();
 				String columnName = fieldLabelVsColumnName.get(fieldLabel);
-				Object value = saree.get(fieldLabel);
-				updateObj.setValueForColumn(query.new Column(SAREE.TABLE,columnName), value);
+				Object value = item.get(fieldLabel);
+				updateObj.setValueForColumn(query.new Column(ITEM.TABLE,columnName), value);
 			}
-			Query.Criteria uCr = query.new Criteria(query.new Column(SAREE.TABLE,SAREE.SAREE_ID), sareeId, Query.comparison_operators.EQUAL_TO);
+			Query.Criteria uCr = query.new Criteria(query.new Column(ITEM.TABLE,ITEM.ITEM_ID), itemId, Query.comparison_operators.EQUAL_TO);
 			updateObj.setCriteria(uCr);
 			Interface dbInt = new Interface();
 			int rs = dbInt.updateData(updateObj);
@@ -201,14 +221,14 @@ public class Saree {
 	
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("{sareeId}")
-	public String deleteSaree(@PathParam("sareeId") Integer sareeId)
+	@Path("{itemId}")
+	public String deleteItem(@PathParam("itemId") Integer itemId)
 	{
 		Response response = new Response();
 		Delete deleteObj = new Delete();
-		deleteObj.setDeleteTableName(SAREE.TABLE);
+		deleteObj.setDeleteTableName(ITEM.TABLE);
 		Query query = new Query();
-		Query.Criteria dCr = query.new Criteria(query.new Column(SAREE.TABLE,SAREE.SAREE_ID), sareeId, Query.comparison_operators.EQUAL_TO);
+		Query.Criteria dCr = query.new Criteria(query.new Column(ITEM.TABLE,ITEM.ITEM_ID), itemId, Query.comparison_operators.EQUAL_TO);
 		deleteObj.setDeleteCriteria(dCr);
 		Interface dbInt = new Interface();
 		int rs = dbInt.deleteData(deleteObj);
@@ -228,21 +248,21 @@ public class Saree {
 	
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
-	public String deleteSarees(@Context UriInfo uriInfo)
+	public String deleteItems(@Context UriInfo uriInfo)
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String sareeIdsString = queryParams.getFirst("sareeIds");
-		String[] sareeIdStrings = sareeIdsString.split(",");
-		int dataLen = sareeIdStrings.length;
+		String itemIdsString = queryParams.getFirst("itemIds");
+		String[] itemIdStrings = itemIdsString.split(",");
+		int dataLen = itemIdStrings.length;
 		int deletedLen = 0;
 		Query query = new Query();
 		for(int i=0; i<dataLen; i++)
 		{
-			Integer sareeId = Integer.parseInt(sareeIdStrings[i]);
+			Integer itemId = Integer.parseInt(itemIdStrings[i]);
 			Delete deleteObj = new Delete();
-			deleteObj.setDeleteTableName(SAREE.TABLE);
-			Query.Criteria dCr = query.new Criteria(query.new Column(SAREE.TABLE,SAREE.SAREE_ID), sareeId, Query.comparison_operators.EQUAL_TO);
+			deleteObj.setDeleteTableName(ITEM.TABLE);
+			Query.Criteria dCr = query.new Criteria(query.new Column(ITEM.TABLE,ITEM.ITEM_ID), itemId, Query.comparison_operators.EQUAL_TO);
 			deleteObj.setDeleteCriteria(dCr);
 			Interface dbInt = new Interface();
 			int rs = dbInt.deleteData(deleteObj);

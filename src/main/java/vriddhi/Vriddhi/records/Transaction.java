@@ -40,13 +40,30 @@ public class Transaction {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getAllTransactions()
+	public String getAllTransactions(@Context UriInfo uriInfo)
 	{
 		try
 		{
+			Integer limit = 0;
+			if(uriInfo!=null)
+			{
+				MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
+				String limitString = queryParams.getFirst("limit");
+				if(limitString!=null && !limitString.isEmpty())
+				{
+					limit = Integer.parseInt(limitString);
+				}
+			}
+			
 			Query query = new Query();
 			Select sq = new Select();
 			sq.addSelectColumn(query.new Column(TRANSACTION.TABLE,"*"));
+			sq.addOrderByColumn(query.new Column(TRANSACTION.TABLE,TRANSACTION.CREATED_TIME));
+			sq.setSortingOrder(Select.order.DESC);
+			if(limit>0)
+			{
+				sq.setLimit(limit);
+			}
 			Interface dbInt = new Interface();
 			JSONObject rs = (JSONObject)dbInt.getData(sq);
 			if(rs!=null)
@@ -73,7 +90,14 @@ public class Transaction {
 							key = columnVsFieldLabelMap.get(transactionKey);
 						}
 						Object value = transaction.get(transactionKey);
-						transactionRes.put(key, value);
+						if(key!=null && value!=null)
+						{
+							transactionRes.put(key, value);
+						}
+						if(key!=null && value==null)
+						{
+							transactionRes.put(key, JSONObject.NULL);
+						}
 					}
 					resTransactions.put(transactionRes);
 				}

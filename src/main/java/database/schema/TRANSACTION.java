@@ -15,5 +15,6 @@ public class TRANSACTION {
 	public static String FROM_ACCOUNT = "FROM_ACCOUNT";
 	public static String TO_ACCOUNT = "TO_ACCOUNT";
 	public static String NOTES = "NOTES";
+	public static String CREATED_TIME = "CREATED_TIME";
 
 }
