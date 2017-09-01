@@ -1,5 +1,6 @@
 package vriddhi.Vriddhi.records;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -40,13 +41,32 @@ public class Contact {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getAllContacts()
+	public String getAllContacts(@Context UriInfo uriInfo)
 	{
 		try
 		{
+			ArrayList<Integer> contactIds = new ArrayList<Integer>();
+			if(uriInfo!=null)
+			{
+				MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
+				String idsString = queryParams.getFirst("ids");
+				if(idsString!=null && !idsString.isEmpty())
+				{
+					String[] ids = idsString.split(",");
+					for(int i=0; i<ids.length; i++)
+					{
+						contactIds.add(Integer.parseInt(ids[i]));
+					}
+				}
+			}
 			Query query = new Query();
 			Select sq = new Select();
 			sq.addSelectColumn(query.new Column(CONTACT.TABLE,"*"));
+			if(contactIds.size()>0)
+			{
+				Query.Criteria idCr = query.new Criteria(query.new Column(CONTACT.TABLE,CONTACT.CONTACT_ID),contactIds,Query.comparison_operators.IN);
+				sq.setCriteria(idCr);
+			}
 			Interface dbInt = new Interface();
 			JSONObject rs = (JSONObject)dbInt.getData(sq);
 			if(rs!=null)

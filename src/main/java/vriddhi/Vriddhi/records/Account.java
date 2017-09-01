@@ -1,5 +1,6 @@
 package vriddhi.Vriddhi.records;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -38,13 +39,32 @@ public class Account {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getAllAccounts()
+	public String getAllAccounts(@Context UriInfo uriInfo)
 	{
 		try
 		{
+			ArrayList<Integer> accountIds = new ArrayList<Integer>();
+			if(uriInfo!=null)
+			{
+				MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
+				String idsString = queryParams.getFirst("ids");
+				if(idsString!=null && !idsString.isEmpty())
+				{
+					String[] ids = idsString.split(",");
+					for(int i=0; i<ids.length; i++)
+					{
+						accountIds.add(Integer.parseInt(ids[i]));
+					}
+				}
+			}
 			Query query = new Query();
 			Select sq = new Select();
 			sq.addSelectColumn(query.new Column(ACCOUNT.TABLE,"*"));
+			if(accountIds.size()>0)
+			{
+				Query.Criteria idCr = query.new Criteria(query.new Column(ACCOUNT.TABLE,ACCOUNT.ACCOUNT_ID),accountIds,Query.comparison_operators.IN);
+				sq.setCriteria(idCr);
+			}
 			Interface dbInt = new Interface();
 			JSONObject rs = (JSONObject)dbInt.getData(sq);
 			if(rs!=null)
