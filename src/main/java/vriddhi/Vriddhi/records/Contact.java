@@ -249,7 +249,7 @@ public class Contact {
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String contactIdsString = queryParams.getFirst("contactIds");
+		String contactIdsString = queryParams.getFirst("ids");
 		String[] contactIdStrings = contactIdsString.split(",");
 		int dataLen = contactIdStrings.length;
 		int deletedLen = 0;

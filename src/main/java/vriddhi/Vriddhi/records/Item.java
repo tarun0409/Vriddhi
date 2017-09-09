@@ -252,7 +252,7 @@ public class Item {
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String itemIdsString = queryParams.getFirst("itemIds");
+		String itemIdsString = queryParams.getFirst("ids");
 		String[] itemIdStrings = itemIdsString.split(",");
 		int dataLen = itemIdStrings.length;
 		int deletedLen = 0;

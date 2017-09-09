@@ -247,7 +247,7 @@ public class Account {
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String accountIdsString = queryParams.getFirst("accountIds");
+		String accountIdsString = queryParams.getFirst("ids");
 		String[] accountIdStrings = accountIdsString.split(",");
 		int dataLen = accountIdStrings.length;
 		int deletedLen = 0;

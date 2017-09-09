@@ -201,7 +201,7 @@ public class Transaction {
 	{
 		Response response = new Response();
 		MultivaluedMap<String,String> queryParams = uriInfo.getQueryParameters();
-		String transactionIdsString = queryParams.getFirst("transactionIds");
+		String transactionIdsString = queryParams.getFirst("ids");
 		String[] transactionIdStrings = transactionIdsString.split(",");
 		int dataLen = transactionIdStrings.length;
 		int deletedLen = 0;
